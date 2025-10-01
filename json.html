@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archivo JSON</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        #jsonContent {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        #errorMessage {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Archivo JSON</h1>
+    
+    <input type="file" id="jsonFile" accept=".json">
+    
+    <div id="jsonContent">El contenido del archivo JSON aparecerá aquí...</div>
+    <div id="errorMessage"></div>
+
+    <script>
+        document.getElementById('jsonFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (!file) return;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('jsonContent').textContent = e.target.result;
+                document.getElementById('errorMessage').textContent = '';
+            };
+            
+            reader.onerror = function() {
+                document.getElementById('errorMessage').textContent = 'Error al leer el archivo';
+            };
+            
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
