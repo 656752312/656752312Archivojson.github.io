@@ -3,61 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archivo JSON</title>
+    <title>Archivos JSON</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        
-        h1 {
-            text-align: center;
-        }
-        
-        #jsonContent {
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-top: 20px;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-        
-        #errorMessage {
-            color: red;
-            margin-top: 10px;
-        }
+        body { font-family: Arial; margin: 20px; }
+        table { border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
     </style>
 </head>
 <body>
-    <h1>Archivo JSON</h1>
+    <h1>Archivos JSON</h1>
     
-    <input type="file" id="jsonFile" accept=".json">
+    <div>
+        <input id="file" type="file" accept=".json">
+        <button id="show">Cargar JSON</button>
+    </div>
     
-    <div id="jsonContent">El contenido del archivo JSON aparecerá aquí...</div>
-    <div id="errorMessage"></div>
+    <div id="out">Selecciona un archivo JSON </div>
 
     <script>
-        document.getElementById('jsonFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
+        const input = document.getElementById('file');
+        const out = document.getElementById('out');
+
+        document.getElementById('show').addEventListener('click', async () => {
+            const f = input.files?.[0];
+            if (!f) {
+                out.innerHTML = 'Elige un archivo .json primero';
+                return;
+            }
             
-            if (!file) return;
-            
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                document.getElementById('jsonContent').textContent = e.target.result;
-                document.getElementById('errorMessage').textContent = '';
-            };
-            
-            reader.onerror = function() {
-                document.getElementById('errorMessage').textContent = 'Error al leer el archivo';
-            };
-            
-            reader.readAsText(file);
+            try {
+                const text = await f.text();
+                const data = JSON.parse(text);
+                const tableHTML = jsonToTable(data);
+                out.innerHTML = tableHTML;
+            } catch (error) {
+                out.innerHTML = 'Error: ' + error.message;
+            }
         });
+
+        function jsonToTable(data) {
+            if (Array.isArray(data)) {
+                if (data.length === 0) return 'El JSON está vacío';
+                
+                const headers = [...new Set(data.flatMap(obj => Object.keys(obj)))];
+                
+                let tableHTML = '<table><thead><tr>';
+                headers.forEach(header => {
+                    tableHTML += `<th>${header}</th>`;
+                });
+                tableHTML += '</tr></thead><tbody>';
+                
+                data.forEach(item => {
+                    tableHTML += '<tr>';
+                    headers.forEach(header => {
+                        const value = item[header];
+                        tableHTML += `<td>${formatValue(value)}</td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                
+                tableHTML += '</tbody></table>';
+                return tableHTML;
+            }
+            else if (typeof data === 'object' && data !== null) {
+                let tableHTML = '<table><tbody>';
+                Object.entries(data).forEach(([key, value]) => {
+                    tableHTML += `<tr><th>${key}</th><td>${formatValue(value)}</td></tr>`;
+                });
+                tableHTML += '</tbody></table>';
+                return tableHTML;
+            }
+            else {
+                return `<div>${formatValue(data)}</div>`;
+            }
+        }
+
+     function formatValue(value) {
+            if (value === null) return 'null';
+            if (value === undefined) return 'undefined';
+            if (typeof value === 'object') return JSON.stringify(value);
+            return String(value);
+        }
     </script>
 </body>
 </html>
